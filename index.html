@@ -989,8 +989,8 @@
             try {
                 const res = await uploadFileInChunks(file);
                 activeVariantTarget.dataset.imageId = res.fileId;
-                const proxied = getProxyUrl(res.fileId);
-                preview.innerHTML = `<img src="${proxied}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                const localUrl = URL.createObjectURL(file);
+                preview.innerHTML = `<img src="${localUrl}" style="width: 100%; height: 100%; object-fit: cover;">`;
             } catch (err) {
                 preview.innerHTML = '<span style="font-size: 0.5rem; color:red">Lỗi</span>';
             }
@@ -1008,8 +1008,8 @@
             try {
                 const res = await uploadFileInChunks(file);
                 thumbnailId = res.fileId;
-                const proxied = getProxyUrl(res.fileId);
-                preview.innerHTML = `<img src="${proxied}"><div class="badge">Thumbnail</div>`;
+                const localUrl = URL.createObjectURL(file);
+                preview.innerHTML = `<img src="${localUrl}"><div class="badge">Thumbnail</div>`;
             } catch (err) {
                 preview.innerHTML = 'Lỗi!';
             }
@@ -1029,11 +1029,11 @@
                 try {
                     const res = await uploadFileInChunks(file);
                     galleryIds.push(res.fileId);
-                    const proxied = getProxyUrl(res.fileId);
+                    const localUrl = URL.createObjectURL(file);
                     if (file.type.startsWith('video')) {
-                        item.innerHTML = `<video src="${proxied}"></video><div class="badge">Video</div>`;
+                        item.innerHTML = `<video src="${localUrl}" controls></video><div class="badge">Video</div>`;
                     } else {
-                        item.innerHTML = `<img src="${proxied}"><div class="badge">Image</div>`;
+                        item.innerHTML = `<img src="${localUrl}"><div class="badge">Image</div>`;
                     }
                 } catch (err) {
                     item.textContent = 'Lỗi!';
