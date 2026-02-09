@@ -111,6 +111,10 @@
             font-family: inherit;
         }
 
+        #apiUrl {
+            width: auto;
+        }
+
         .media-upload-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -383,6 +387,99 @@
             border-radius: 0.25rem;
             font-size: 0.9em;
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .tabs {
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding: 0.5rem;
+            }
+
+            .tab {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .card {
+                padding: 1.25rem;
+            }
+
+            /* Search/Filter Stack */
+            .search-bar {
+                flex-direction: column;
+            }
+
+            #apiUrl {
+                width: 100% !important;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .product-img {
+                height: 180px;
+            }
+
+            /* Variant Item Responsive */
+            .variant-item {
+                grid-template-columns: 50px 1fr;
+                gap: 0.75rem;
+            }
+
+            .variant-item>div:nth-child(2) {
+                grid-column: span 1;
+            }
+
+            .variant-item>div:nth-child(3),
+            .variant-item>div:nth-child(4) {
+                grid-column: span 1;
+            }
+
+            .variant-item>button {
+                grid-column: span 2;
+                width: 100%;
+                margin-top: 0.25rem;
+            }
+
+            /* Detail Modal */
+            .modal-content {
+                padding: 1.25rem;
+                width: 95%;
+            }
+
+            #modalBody>div {
+                flex-direction: column !important;
+                gap: 1.5rem !important;
+            }
+
+            #modalBody img {
+                width: 100% !important;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            .detail-media-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -391,7 +488,7 @@
     <div class="container">
         <div class="header">
             <h1>Gia Dụng Tín <span>BETA</span></h1>
-            <input type="text" id="apiUrl" value="" style="width: auto;">
+            <input type="text" id="apiUrl" value="" placeholder="API URL">
         </div>
 
         <div class="tabs">
@@ -402,7 +499,7 @@
 
         <!-- LIST VIEW -->
         <div id="viewList" class="view-section active">
-            <div class="card" style="margin-bottom: 2rem; display: flex; gap: 1rem; padding: 1rem;">
+            <div class="card search-bar" style="margin-bottom: 2rem; display: flex; gap: 1rem; padding: 1rem;">
                 <input type="text" id="searchName" placeholder="Tìm theo tên sản phẩm..." oninput="loadProducts()"
                     style="flex: 2;">
                 <select id="filterCategory" onchange="loadProducts()" style="flex: 1;">
