@@ -440,12 +440,20 @@
 
             /* Variant Item Responsive */
             .variant-item {
-                grid-template-columns: 50px 1fr;
-                gap: 0.75rem;
+                grid-template-columns: 50px 1fr 1fr;
+                gap: 0.5rem;
+                padding: 0.75rem;
+                background: #f1f5f9;
+                border-radius: 0.5rem;
+            }
+
+            .vImagePreview {
+                grid-row: span 2;
+                height: 100% !important;
             }
 
             .variant-item>div:nth-child(2) {
-                grid-column: span 1;
+                grid-column: span 2;
             }
 
             .variant-item>div:nth-child(3),
@@ -454,9 +462,10 @@
             }
 
             .variant-item>button {
-                grid-column: span 2;
+                grid-column: span 3;
                 width: 100%;
-                margin-top: 0.25rem;
+                padding: 0.5rem;
+                margin-top: 0;
             }
 
             /* Detail Modal */
