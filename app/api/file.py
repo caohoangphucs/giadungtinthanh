@@ -122,6 +122,14 @@ def delete_file(
     db: Session = Depends(get_db),
     token: dict = Depends(require_admin) # As per spec
 ):
+    # Clear Redis cache if exists
+    try:
+        from app.core.redis import redis_client
+        cache_key = f"img_cache_60_{file_id}"
+        redis_client.delete(cache_key)
+    except:
+        pass
+
     success = FileService.delete_file(db, file_id)
     if not success:
          raise HTTPException(status_code=404, detail="File not found")
