@@ -804,7 +804,9 @@
                             <div style="background: #f8fafc; border-radius: 0.5rem; padding: 1rem;">
                                 ${p.variants.map(v => `
                                     <div style="display: flex; gap: 1rem; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0; align-items: center;">
-                                        <img src="${getProxyUrl(v.image?.id)}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                                        <div style="width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: #eee;">
+                                            ${v.image ? `<img src="${getProxyUrl(v.image.id)}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#999;">Ko ảnh</div>'}
+                                        </div>
                                         <div style="flex: 1;">
                                             <span>${v.attributes[0]?.unit || 'Mặc định'}</span>
                                             <div style="font-size: 0.75rem; color: var(--text-muted);">Kho: ${v.stock}</div>
@@ -865,7 +867,11 @@
                 // Thumbnail
                 if (p.thumbnail) {
                     thumbnailId = p.thumbnail.id;
-                    document.getElementById('thumbPreview').innerHTML = `<img src="${getProxyUrl(p.thumbnail.id)}"><div class="badge">Thumbnail</div>`;
+                    document.getElementById('thumbPreview').innerHTML = `
+                        <img src="${getProxyUrl(p.thumbnail.id)}">
+                        <div class="badge">Thumbnail</div>
+                        <button type="button" class="remove-btn" onclick="clearThumbnail(event)">×</button>
+                    `;
                 }
 
                 // Gallery
@@ -874,11 +880,12 @@
                 p.media.forEach(m => {
                     const item = document.createElement('div');
                     item.className = 'media-preview';
+                    item.dataset.fileId = m.file.id;
                     const proxied = getProxyUrl(m.file.id);
                     if (m.media_type === 'video' || m.file.mime_type.startsWith('video')) {
-                        item.innerHTML = `<video src="${proxied}"></video><div class="badge">Video</div>`;
+                        item.innerHTML = `<video src="${proxied}"></video><div class="badge">Video</div><button type="button" class="remove-btn" onclick="removeMedia(this)">×</button>`;
                     } else {
-                        item.innerHTML = `<img src="${proxied}"><div class="badge">Image</div>`;
+                        item.innerHTML = `<img src="${proxied}"><div class="badge">Image</div><button type="button" class="remove-btn" onclick="removeMedia(this)">×</button>`;
                     }
                     gallery.prepend(item);
                 });
@@ -954,8 +961,11 @@
             const proxied = getProxyUrl(data.image?.id);
 
             item.innerHTML = `
-                <div class="vImagePreview" style="height: 50px; display: flex; align-items: center; justify-content: center; background: #eee; border-radius: 0.5rem; cursor: pointer; overflow: hidden;" onclick="changeVariantImage(this)">
-                    ${data.image?.id ? `<img src="${proxied}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="font-size: 0.6rem;">Ảnh</span>'}
+                <div class="vImagePreview" style="position: relative; height: 50px; display: flex; align-items: center; justify-content: center; background: #eee; border-radius: 0.5rem; cursor: pointer; overflow: hidden;">
+                    <div style="width:100%; height:100%;" onclick="changeVariantImage(this)">
+                        ${data.image?.id ? `<img src="${proxied}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="font-size: 0.6rem;">Ảnh</span>'}
+                    </div>
+                    ${data.image?.id ? `<button type="button" class="remove-btn" onclick="clearVariantImage(this)" style="width:16px; height:16px; font-size:10px;">×</button>` : ''}
                 </div>
                 <div>
                     <label style="font-size: 0.65rem; color: var(--text-muted);">Tên phiên bản</label>
@@ -975,8 +985,16 @@
         }
 
         function changeVariantImage(el) {
-            activeVariantTarget = el.parentElement;
+            activeVariantTarget = el.closest('.variant-item');
             document.getElementById('vImageInput').click();
+        }
+
+        function clearVariantImage(btn) {
+            const preview = btn.parentElement;
+            const item = preview.parentElement;
+            item.dataset.imageId = '';
+            preview.querySelector('div').innerHTML = '<span style="font-size: 0.6rem;">Ảnh</span>';
+            btn.remove();
         }
 
         document.getElementById('vImageInput').addEventListener('change', async (e) => {
@@ -984,15 +1002,27 @@
             if (!file || !activeVariantTarget) return;
 
             const preview = activeVariantTarget.querySelector('.vImagePreview');
-            preview.innerHTML = '<span style="font-size: 0.5rem;">...</span>';
+            const contentDiv = preview.querySelector('div');
+            contentDiv.innerHTML = '<span style="font-size: 0.5rem;">...</span>';
 
             try {
                 const res = await uploadFileInChunks(file);
                 activeVariantTarget.dataset.imageId = res.fileId;
                 const localUrl = URL.createObjectURL(file);
-                preview.innerHTML = `<img src="${localUrl}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                contentDiv.innerHTML = `<img src="${localUrl}" style="width: 100%; height: 100%; object-fit: cover;">`;
+
+                // Add remove button if not exists
+                if (!preview.querySelector('.remove-btn')) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.style = 'width:16px; height:16px; font-size:10px;';
+                    removeBtn.textContent = '×';
+                    removeBtn.onclick = () => clearVariantImage(removeBtn);
+                    preview.appendChild(removeBtn);
+                }
             } catch (err) {
-                preview.innerHTML = '<span style="font-size: 0.5rem; color:red">Lỗi</span>';
+                contentDiv.innerHTML = '<span style="font-size: 0.5rem; color:red">Lỗi</span>';
             }
             e.target.value = ''; // Reset
         });
@@ -1009,11 +1039,21 @@
                 const res = await uploadFileInChunks(file);
                 thumbnailId = res.fileId;
                 const localUrl = URL.createObjectURL(file);
-                preview.innerHTML = `<img src="${localUrl}"><div class="badge">Thumbnail</div>`;
+                preview.innerHTML = `
+                    <img src="${localUrl}">
+                    <div class="badge">Thumbnail</div>
+                    <button type="button" class="remove-btn" onclick="clearThumbnail(event)">×</button>
+                `;
             } catch (err) {
                 preview.innerHTML = 'Lỗi!';
             }
         });
+
+        function clearThumbnail(e) {
+            e.stopPropagation();
+            thumbnailId = null;
+            document.getElementById('thumbPreview').innerHTML = '<div class="upload-placeholder" onclick="document.getElementById(\'thumbInput\').click()">Bấm để chọn ảnh chính</div>';
+        }
 
         // Handle Gallery
         document.getElementById('mediaInput').addEventListener('change', async (e) => {
@@ -1029,17 +1069,27 @@
                 try {
                     const res = await uploadFileInChunks(file);
                     galleryIds.push(res.fileId);
+                    item.dataset.fileId = res.fileId;
                     const localUrl = URL.createObjectURL(file);
                     if (file.type.startsWith('video')) {
-                        item.innerHTML = `<video src="${localUrl}" controls></video><div class="badge">Video</div>`;
+                        item.innerHTML = `<video src="${localUrl}" controls></video><div class="badge">Video</div><button type="button" class="remove-btn" onclick="removeMedia(this)">×</button>`;
                     } else {
-                        item.innerHTML = `<img src="${localUrl}"><div class="badge">Image</div>`;
+                        item.innerHTML = `<img src="${localUrl}"><div class="badge">Image</div><button type="button" class="remove-btn" onclick="removeMedia(this)">×</button>`;
                     }
                 } catch (err) {
                     item.textContent = 'Lỗi!';
                 }
             }
         });
+
+        function removeMedia(btn) {
+            const item = btn.parentElement;
+            const fileId = item.dataset.fileId;
+            if (fileId) {
+                galleryIds = galleryIds.filter(id => id !== fileId);
+            }
+            item.remove();
+        }
 
         // Submit Form
         document.getElementById('productForm').addEventListener('submit', async (e) => {
@@ -1085,6 +1135,7 @@
                 if (res.ok) {
                     alert(editingProductId ? "Cập nhật sản phẩm thành công!" : "Tạo sản phẩm thành công!");
                     resetForm();
+                    loadProducts();
                 } else {
                     alert("Lỗi khi lưu sản phẩm.");
                 }
