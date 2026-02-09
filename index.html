@@ -339,6 +339,33 @@
             color: var(--text-muted);
         }
 
+        /* Lightbox Styles */
+        #lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        #lightbox.active {
+            display: flex;
+        }
+
+        #lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
         .detail-media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -628,6 +655,11 @@
         </div>
     </div>
 
+    <!-- LIGHTBOX -->
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightboxImg" src="">
+    </div>
+
     <script>
         const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
         let thumbnailId = null;
@@ -678,6 +710,18 @@
             if (!fileId) return 'https://via.placeholder.com/300x200?text=No+Image';
             const apiBase = document.getElementById('apiUrl').value;
             return `${apiBase}/files/${fileId}`;
+        }
+
+        // Lightbox Functions
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightboxImg');
+            img.src = src;
+            lb.classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
         }
 
         // Tab Switching
@@ -752,9 +796,9 @@
                 const res = await fetch(url);
                 const products = await res.json();
                 grid.innerHTML = products.length ? products.map(p => `
-                    <div class="product-card" onclick="showProductDetail(${p.id})">
-                        <img src="${getProxyUrl(p.thumbnail?.id)}" class="product-img">
-                        <div class="product-info">
+                    <div class="product-card">
+                        <img src="${getProxyUrl(p.thumbnail?.id)}" class="product-img" onclick="showProductDetail(${p.id})">
+                        <div class="product-info" onclick="showProductDetail(${p.id})">
                             <div class="product-category">${p.category?.name || 'Uncategorized'}</div>
                             <div class="product-name">${p.name}</div>
                             <div class="product-price">${(p.variants[0]?.price || 0).toLocaleString()}đ</div>
@@ -782,7 +826,8 @@
                 body.innerHTML = `
                     <div style="display: flex; gap: 2rem; align-items: start;">
                         <img src="${getProxyUrl(p.thumbnail?.id)}" 
-                             style="width: 250px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                             style="width: 250px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: zoom-in;"
+                             onclick="openLightbox(this.src)">
                         <div style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: start;">
                                 <div class="product-category">${p.category?.name || 'Uncategorized'}</div>
@@ -804,7 +849,7 @@
                             <div style="background: #f8fafc; border-radius: 0.5rem; padding: 1rem;">
                                 ${p.variants.map(v => `
                                     <div style="display: flex; gap: 1rem; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0; align-items: center;">
-                                        <div style="width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: #eee;">
+                                        <div style="width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: #eee; cursor: zoom-in;" onclick="if(this.querySelector('img')) openLightbox(this.querySelector('img').src)">
                                             ${v.image ? `<img src="${getProxyUrl(v.image.id)}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#999;">Ko ảnh</div>'}
                                         </div>
                                         <div style="flex: 1;">
@@ -824,7 +869,7 @@
                             <div class="detail-media-item">
                                 ${m.media_type === 'video' || m.file.mime_type.startsWith('video')
                         ? `<video src="${getProxyUrl(m.file.id)}" controls></video>`
-                        : `<img src="${getProxyUrl(m.file.id)}" onclick="window.open('${getProxyUrl(m.file.id)}')" style="cursor:zoom-in">`}
+                        : `<img src="${getProxyUrl(m.file.id)}" onclick="openLightbox(this.src)" style="cursor:zoom-in">`}
                             </div>
                         `).join('')}
                     </div>
