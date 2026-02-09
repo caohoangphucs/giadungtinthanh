@@ -1,0 +1,7 @@
+ENV=$1
+if [ -z "$ENV" ];then
+    echo "To specify env, use ./run_dev dev/prod"
+    exit 1;
+fi
+
+uvicorn main:app --host 0.0.0.0 --port 8000 --env-file .env.$ENV --reload

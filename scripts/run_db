@@ -1,0 +1,6 @@
+SCRIPT_DIR="$PROJECT_DIR/scripts"
+
+echo "Database not ready, turning on..."
+    docker compose -f "$PROJECT_DIR/postgres.yml" up -d --build
+    sleep 7
+    "$PROJECT_DIR/venv/bin/alembic" upgrade head

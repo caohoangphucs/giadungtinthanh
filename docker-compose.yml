@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: giadungtin_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: giadungtin_db
+      POSTGRES_USER: giadungtin
+      POSTGRES_PASSWORD: giadungtin
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U giadungtin -d giadungtin_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - giadungtin_network
+
+  redis:
+    image: redis:7
+    container_name: giadungtin_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - giadungtin_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: giadungtin_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8888:8000"
+    networks:
+      - giadungtin_network
+    env_file:
+      - .env.prod
+    command: ["sh", "-c", "alembic upgrade head && sh scripts/run prod"]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  giadungtin_network:
+    driver: bridge

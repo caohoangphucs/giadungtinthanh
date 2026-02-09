@@ -1,0 +1,6 @@
+docker compose -f $PROJECT_DIR/postgres.yml down -v
+docker compose -f $PROJECT_DIR/postgres.yml up -d --build
+echo "Waiting for database to startup"
+sleep 7
+$PROJECT_DIR/scripts/run_db
+echo "OK database restarted !"

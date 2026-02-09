@@ -1,0 +1,45 @@
+# Virtual environments
+.venv/
+venv/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Git
+.git/
+.gitignore
+
+
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# Byte compiled
+*.py[cod]
+
+# Testing stuff
+.pytest_cache/
+coverage/
+
+# Build artifacts
+dist/
+build/
+
+# Docker itself
+Dockerfile
+docker-compose.yml
+
+# Optional
+uploads/
+qdrant_local/
+datasets/

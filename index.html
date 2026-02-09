@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gia Dụng Tín - Shop Manager</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: #e2e8f0;
+            padding: 0.25rem;
+            border-radius: 0.75rem;
+            width: fit-content;
+        }
+
+        .tab {
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-family: inherit;
+        }
+
+        .media-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .media-preview {
+            aspect-ratio: 1;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 2px dashed #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .media-preview img,
+        .media-preview video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-preview .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .media-preview .badge {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .upload-placeholder {
+            cursor: pointer;
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 0.75rem;
+            padding: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--text);
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        .variants-container {
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #f8fafc;
+        }
+
+        .variant-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: end;
+        }
+
+        .variant-item button {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        /* List Styles */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+
+        .product-info {
+            padding: 1.25rem;
+        }
+
+        .product-name {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .product-category {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        #uploadProgress {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .detail-media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .detail-media-item {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            background: #000;
+        }
+
+        .detail-media-item img,
+        .detail-media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Markdown Styling */
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.25rem;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .markdown-body p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .markdown-body code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Gia Dụng Tín <span>BETA</span></h1>
+            <input type="text" id="apiUrl" value="" style="width: auto;">
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-view="viewList">Sản phẩm</button>
+            <button class="tab" data-view="viewCreate">Thêm mới</button>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="viewList" class="view-section active">
+            <div class="product-grid" id="productGrid">
+                <!-- Data will be loaded here -->
+                <p>Đang tải dữ liệu...</p>
+            </div>
+        </div>
+
+        <!-- CREATE VIEW -->
+        <div id="viewCreate" class="view-section">
+            <div class="card">
+                <form id="productForm">
+                    <div class="form-group">
+                        <label>Tên sản phẩm</label>
+                        <input type="text" id="pName" required placeholder="Ví dụ: Nồi chiên không dầu Magic">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Danh mục</label>
+                        <select id="pCategory"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả sản phẩm (Hỗ trợ Markdown)</label>
+                        <textarea id="pDescription" rows="5" placeholder="Nhập mô tả sản phẩm ở đây..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phiên bản & Giá (Size, Cân nặng, ...)</label>
+                        <div class="variants-container" id="variantsContainer">
+                            <div class="variant-item">
+                                <div>
+                                    <label style="font-size: 0.7rem;">Tên (VD: Size L / 5kg)</label>
+                                    <input type="text" class="vName" value="Mặc định">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.7rem;">Giá (VNĐ)</label>
+                                    <input type="number" class="vPrice" value="100000">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.7rem;">Kho</label>
+                                    <input type="number" class="vStock" value="100">
+                                </div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addVariant()">+ Thêm phiên bản</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh đại diện (Thumbnail)</label>
+                        <div class="media-upload-grid">
+                            <div class="media-preview" id="thumbPreview">
+                                <div class="upload-placeholder" onclick="document.getElementById('thumbInput').click()">
+                                    Bấm để chọn ảnh chính
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="thumbInput" hidden accept="image/*">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thư viện ảnh & Video</label>
+                        <div class="media-upload-grid" id="mediaGallery">
+                            <div class="media-preview">
+                                <div class="upload-placeholder" onclick="document.getElementById('mediaInput').click()">
+                                    + Thêm ảnh/video
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="mediaInput" hidden multiple accept="image/*,video/*">
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn-primary" id="submitBtn">Lưu sản phẩm</button>
+                        <button type="button" class="btn-secondary" id="cancelBtn" style="display: none; margin-top: 0;"
+                            onclick="resetForm(); switchTab('viewList');">Hủy</button>
+                    </div>
+                </form>
+
+                <div id="uploadProgress">
+                    <div id="progressText">Đang tải file...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div id="modalBody">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CHUNK_SIZE = 1 * 1024 * 1024; // 1MB
+        let thumbnailId = null;
+        let galleryIds = [];
+        let editingProductId = null;
+
+        // Reset form to original state
+        function resetForm() {
+            editingProductId = null;
+            document.getElementById('productForm').reset();
+            document.getElementById('submitBtn').textContent = 'Lưu sản phẩm';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('thumbPreview').innerHTML = '<div class="upload-placeholder" onclick="document.getElementById(\'thumbInput\').click()">Bấm để chọn ảnh chính</div>';
+
+            // Clear gallery
+            const gallery = document.getElementById('mediaGallery');
+            const placeholders = gallery.querySelectorAll('.media-preview:has(.upload-placeholder)');
+            gallery.innerHTML = '';
+            placeholders.forEach(p => gallery.appendChild(p));
+
+            // Reset variants to default
+            const container = document.getElementById('variantsContainer');
+            container.innerHTML = `
+                <div class="variant-item">
+                    <div>
+                        <label style="font-size: 0.7rem;">Tên (VD: Size L / 5kg)</label>
+                        <input type="text" class="vName" value="Mặc định">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.7rem;">Giá (VNĐ)</label>
+                        <input type="number" class="vPrice" value="100000">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.7rem;">Kho</label>
+                        <input type="number" class="vStock" value="100">
+                    </div>
+                    <div></div>
+                </div>
+            `;
+            thumbnailId = null;
+            galleryIds = [];
+        }
+
+        function switchTab(viewId) {
+            document.querySelectorAll('.tab').forEach(t => {
+                if (t.dataset.view === viewId) t.classList.add('active');
+                else t.classList.remove('active');
+            });
+            document.querySelectorAll('.view-section').forEach(v => {
+                if (v.id === viewId) v.classList.add('active');
+                else v.classList.remove('active');
+            });
+            if (viewId === 'viewList') loadProducts();
+            if (viewId === 'viewCreate' && !editingProductId) resetForm();
+        }
+
+        // Tab Switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.view));
+        });
+
+        // Load Categories
+        async function loadCategories() {
+            const apiBase = document.getElementById('apiUrl').value;
+            try {
+                const res = await fetch(`${apiBase}/categories/`);
+                const data = await res.json();
+                const select = document.getElementById('pCategory');
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            } catch (e) {
+                console.error("Lỗi tải danh mục", e);
+            }
+        }
+
+        // Load Products
+        async function loadProducts() {
+            const apiBase = document.getElementById('apiUrl').value;
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '<p>Đang tải...</p>';
+            try {
+                const res = await fetch(`${apiBase}/products/`);
+                const products = await res.json();
+                grid.innerHTML = products.map(p => `
+                    <div class="product-card" onclick="showProductDetail(${p.id})">
+                        <img src="${p.thumbnail?.file_url || 'https://via.placeholder.com/300x200?text=No+Image'}" class="product-img">
+                        <div class="product-info">
+                            <div class="product-category">${p.category?.name || 'Uncategorized'}</div>
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price">${(p.variants[0]?.price || 0).toLocaleString()}đ</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                grid.innerHTML = '<p>Lỗi kết nối API.</p>';
+            }
+        }
+
+        // Show Product Detail
+        async function showProductDetail(productId) {
+            const apiBase = document.getElementById('apiUrl').value;
+            const modal = document.getElementById('productModal');
+            const body = document.getElementById('modalBody');
+
+            body.innerHTML = 'Đang tải chi tiết...';
+            modal.classList.add('active');
+
+            try {
+                const res = await fetch(`${apiBase}/products/${productId}`);
+                const p = await res.json();
+
+                body.innerHTML = `
+                    <div style="display: flex; gap: 2rem; align-items: start;">
+                        <img src="${p.thumbnail?.file_url || 'https://via.placeholder.com/300x200?text=No+Image'}" 
+                             style="width: 250px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div class="product-category">${p.category?.name || 'Uncategorized'}</div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="btn-warning" onclick="editProduct(${p.id})">Sửa</button>
+                                    <button class="btn-danger" onclick="deleteProduct(${p.id})">Xóa</button>
+                                </div>
+                            </div>
+                            <h2 style="margin: 0.5rem 0;">${p.name}</h2>
+                            <div class="product-price" style="font-size: 2rem;">
+                                ${(p.variants[0]?.price || 0).toLocaleString()}đ
+                                ${p.variants.length > 1 ? '<span style="font-size: 1rem; color: var(--text-muted);"> (Giá khởi điểm)</span>' : ''}
+                            </div>
+                            <div class="markdown-body" style="margin-top: 1rem; color: var(--text);">
+                                ${marked.parse(p.description || 'Không có mô tả.')}
+                            </div>
+                            
+                            <h4 style="margin-top: 1.5rem;">Phiên bản có sẵn:</h4>
+                            <div style="background: #f8fafc; border-radius: 0.5rem; padding: 1rem;">
+                                ${p.variants.map(v => `
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0;">
+                                        <span>${v.attributes[0]?.unit || 'Mặc định'}</span>
+                                        <b style="color: var(--primary);">${v.price.toLocaleString()}đ</b>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 2rem;">Thư viện Media (${p.media.length})</h3>
+                    <div class="detail-media-grid">
+                        ${p.media.map(m => `
+                            <div class="detail-media-item">
+                                ${m.media_type === 'video' || m.file.mime_type.startsWith('video')
+                        ? `<video src="${m.file.file_url}" controls></video>`
+                        : `<img src="${m.file.file_url}" onclick="window.open('${m.file.file_url}')" style="cursor:zoom-in">`}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (e) {
+                body.innerHTML = 'Không thể tải chi tiết sản phẩm.';
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+            const apiBase = document.getElementById('apiUrl').value;
+            try {
+                const res = await fetch(`${apiBase}/products/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert("Xóa thành công!");
+                    document.getElementById('productModal').classList.remove('active');
+                    loadProducts();
+                } else {
+                    alert("Lỗi khi xóa sản phẩm.");
+                }
+            } catch (e) {
+                alert("Lỗi kết nối.");
+            }
+        }
+
+        async function editProduct(id) {
+            const apiBase = document.getElementById('apiUrl').value;
+            try {
+                const res = await fetch(`${apiBase}/products/${id}`);
+                const p = await res.json();
+
+                resetForm();
+                editingProductId = id;
+
+                document.getElementById('pName').value = p.name;
+                document.getElementById('pDescription').value = p.description || '';
+                document.getElementById('pCategory').value = p.category_id;
+
+                // Thumbnail
+                if (p.thumbnail) {
+                    thumbnailId = p.thumbnail.id;
+                    document.getElementById('thumbPreview').innerHTML = `<img src="${p.thumbnail.file_url}"><div class="badge">Thumbnail</div>`;
+                }
+
+                // Gallery
+                const gallery = document.getElementById('mediaGallery');
+                galleryIds = p.media.map(m => m.file.id);
+                p.media.forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'media-preview';
+                    if (m.media_type === 'video' || m.file.mime_type.startsWith('video')) {
+                        item.innerHTML = `<video src="${m.file.file_url}"></video><div class="badge">Video</div>`;
+                    } else {
+                        item.innerHTML = `<img src="${m.file.file_url}"><div class="badge">Image</div>`;
+                    }
+                    gallery.prepend(item);
+                });
+
+                // Variants
+                const container = document.getElementById('variantsContainer');
+                container.innerHTML = '';
+                p.variants.forEach(v => {
+                    const item = document.createElement('div');
+                    item.className = 'variant-item';
+                    const attrValue = v.attributes[0]?.unit || 'Mặc định';
+                    item.innerHTML = `
+                        <div>
+                            <input type="text" class="vName" value="${attrValue}">
+                        </div>
+                        <div>
+                            <input type="number" class="vPrice" value="${v.price}">
+                        </div>
+                        <div>
+                            <input type="number" class="vStock" value="${v.stock}">
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()">×</button>
+                    `;
+                    container.appendChild(item);
+                });
+
+                document.getElementById('submitBtn').textContent = 'Cập nhật sản phẩm';
+                document.getElementById('cancelBtn').style.display = 'block';
+                document.getElementById('productModal').classList.remove('active');
+                switchTab('viewCreate');
+            } catch (e) {
+                alert("Lỗi khi tải thông tin sản phẩm.");
+            }
+        }
+
+        // Close Modal
+        document.getElementById('closeModal').onclick = () => {
+            document.getElementById('productModal').classList.remove('active');
+        };
+        window.onclick = (e) => {
+            if (e.target.id === 'productModal') e.target.classList.remove('active');
+        };
+
+        // Chunk Upload Logic
+        async function uploadFileInChunks(file) {
+            const apiBase = document.getElementById('apiUrl').value;
+
+            // 1. Init
+            const initFormData = new FormData();
+            initFormData.append('filename', file.name);
+            const initRes = await fetch(`${apiBase}/files/upload/init`, { method: 'POST', body: initFormData });
+            const { upload_id } = await initRes.json();
+
+            // 2. Chunks
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            for (let i = 0; i < totalChunks; i++) {
+                const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                const fd = new FormData();
+                fd.append('upload_id', upload_id);
+                fd.append('chunk_index', i);
+                fd.append('total_chunks', totalChunks);
+                fd.append('chunk', chunk, file.name);
+                await fetch(`${apiBase}/files/upload/chunk`, { method: 'POST', body: fd });
+            }
+
+            // 3. Complete
+            const finalFd = new FormData();
+            finalFd.append('upload_id', upload_id);
+            finalFd.append('total_chunks', totalChunks);
+            finalFd.append('filename', file.name);
+            const completeRes = await fetch(`${apiBase}/files/upload/complete`, { method: 'POST', body: finalFd });
+            return await completeRes.json();
+        }
+
+        // Dynamic Variants Logic
+        function addVariant() {
+            const container = document.getElementById('variantsContainer');
+            const item = document.createElement('div');
+            item.className = 'variant-item';
+            item.innerHTML = `
+                <div>
+                    <input type="text" class="vName" placeholder="Tên phiên bản">
+                </div>
+                <div>
+                    <input type="number" class="vPrice" placeholder="Giá">
+                </div>
+                <div>
+                    <input type="number" class="vStock" value="100">
+                </div>
+                <button type="button" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(item);
+        }
+
+        // Handle Thumbnail
+        document.getElementById('thumbInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById('thumbPreview');
+            preview.innerHTML = 'Đang tải...';
+
+            try {
+                const res = await uploadFileInChunks(file);
+                thumbnailId = res.fileId;
+                preview.innerHTML = `<img src="${res.url}"><div class="badge">Thumbnail</div>`;
+            } catch (err) {
+                preview.innerHTML = 'Lỗi!';
+            }
+        });
+
+        // Handle Gallery
+        document.getElementById('mediaInput').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            const gallery = document.getElementById('mediaGallery');
+
+            for (const file of files) {
+                const item = document.createElement('div');
+                item.className = 'media-preview';
+                item.textContent = '...';
+                gallery.prepend(item);
+
+                try {
+                    const res = await uploadFileInChunks(file);
+                    galleryIds.push(res.fileId);
+                    if (file.type.startsWith('video')) {
+                        item.innerHTML = `<video src="${res.url}"></video><div class="badge">Video</div>`;
+                    } else {
+                        item.innerHTML = `<img src="${res.url}"><div class="badge">Image</div>`;
+                    }
+                } catch (err) {
+                    item.textContent = 'Lỗi!';
+                }
+            }
+        });
+
+        // Submit Form
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Đang lưu...';
+
+            const variantElements = Array.from(document.querySelectorAll('.variant-item'));
+            const variants = variantElements.map(el => {
+                const name = el.querySelector('.vName').value;
+                return {
+                    price: parseFloat(el.querySelector('.vPrice').value),
+                    stock: parseInt(el.querySelector('.vStock').value),
+                    attributes: name !== 'Mặc định' ? [{
+                        name: "Phiên bản",
+                        value: 0,
+                        unit: name
+                    }] : []
+                };
+            });
+
+            const payload = {
+                name: document.getElementById('pName').value,
+                description: document.getElementById('pDescription').value,
+                category_id: parseInt(document.getElementById('pCategory').value),
+                thumbnail_id: thumbnailId,
+                media_ids: galleryIds,
+                variants: variants
+            };
+
+            const apiBase = document.getElementById('apiUrl').value;
+            const url = editingProductId ? `${apiBase}/products/${editingProductId}` : `${apiBase}/products/`;
+            const method = editingProductId ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert(editingProductId ? "Cập nhật sản phẩm thành công!" : "Tạo sản phẩm thành công!");
+                    resetForm();
+                    switchTab('viewList');
+                } else {
+                    alert("Lỗi khi lưu sản phẩm.");
+                }
+            } catch (err) {
+                alert("Lỗi kết nối.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = editingProductId ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm';
+            }
+        });
+
+        // Init
+        const defaultApi = `${window.location.origin}/api`;
+        document.getElementById('apiUrl').value = defaultApi;
+
+        loadCategories();
+        loadProducts();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+# ===============================
+# Core numeric & image processing
+# ===============================
+numpy>=1.23
+Pillow>=10.0
+insightface==0.7.3
+# ===============================
+# Face Recognition (InsightFace)
+# ===============================
+onnxruntime>=1.16.0   # CPU inference cho InsightFace
+
+# ===============================
+# Web backend
+# ===============================
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+pydantic-settings>=2.0
+aiofiles
+
+# ===============================
+# Database
+# ===============================
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+
+# ===============================
+# Migrations
+# ===============================
+alembic>=1.13
+
+# ===============================
+# Utils / Data
+# ===============================
+pandas>=2.0
+openpyxl>=3.1
+qdrant-client==1.16.1
+
+redis
+
+minio
+python-multipart
+
+passlib
+
+beautifulsoup4
+lxml
+requests

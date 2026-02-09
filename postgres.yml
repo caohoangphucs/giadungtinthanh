@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: giadungtin_posgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: giadungtin_db
+      POSTGRES_USER: giadungtin
+      POSTGRES_PASSWORD: giadungtin
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - giadungtin_network
+
+volumes:
+  postgres_data:
+
+networks:
+  giadungtin_network:

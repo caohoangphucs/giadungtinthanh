@@ -1,0 +1,5 @@
+if [ -z "$1" ]; then
+    echo "Commit name is missing, use ./revision_db <commit_name>"
+    exit 1 
+fi
+$PROJECT_DIR/venv/bin/alembic revision --autogenerate -m "$1"

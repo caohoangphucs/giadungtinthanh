@@ -1,0 +1,4 @@
+SCRIPT_DIR="$PROJECT_DIR/scripts"
+
+echo "Tunring minio"
+    docker compose -f "$PROJECT_DIR/minio.yml" up -d --build
