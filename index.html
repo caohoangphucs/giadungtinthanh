@@ -546,7 +546,7 @@
                             <!-- Variants will be added here -->
                         </div>
                         <button type="button" class="btn-secondary" onclick="addVariant()">+ Thêm phiên bản</button>
-                        <input type="file" id="vImageInput" hidden accept="image/*">
+                        <input type="file" id="vImageInput" hidden accept="image/*" capture="environment">
                     </div>
 
                     <div class="form-group">
@@ -558,7 +558,7 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="file" id="thumbInput" hidden accept="image/*">
+                        <input type="file" id="thumbInput" hidden accept="image/*" capture="environment">
                     </div>
 
                     <div class="form-group">
@@ -570,7 +570,8 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="file" id="mediaInput" hidden multiple accept="image/*,video/*">
+                        <input type="file" id="mediaInput" hidden multiple accept="image/*,video/*"
+                            capture="environment">
                     </div>
 
                     <div style="display: flex; gap: 1rem;">
