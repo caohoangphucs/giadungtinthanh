@@ -524,7 +524,24 @@
     <div class="container">
         <div class="header">
             <h1>Gia Dụng Tín <span>BETA</span></h1>
-            <input type="text" id="apiUrl" value="" placeholder="API URL">
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div id="backupProgressBox"
+                        style="display: none; font-size: 0.75rem; color: var(--primary); text-align: right;">
+                        <span id="backupStatusText">Chuẩn bị...</span>
+                        <div
+                            style="width: 100px; height: 4px; background: #eee; border-radius: 2px; margin-top: 2px; overflow: hidden;">
+                            <div id="backupProgressBar"
+                                style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s;">
+                            </div>
+                        </div>
+                    </div>
+                    <button id="backupBtn" onclick="downloadBackup()" class="btn-secondary"
+                        style="padding: 0.5rem 1rem; font-size: 0.8rem; border: 1px solid #cbd5e1;">Backup Hệ
+                        Thống</button>
+                    <input type="text" id="apiUrl" value="" placeholder="API URL">
+                </div>
+            </div>
         </div>
 
         <div class="tabs">
@@ -1234,6 +1251,71 @@
 
         loadCategories();
         loadProducts();
+
+        async function downloadBackup() {
+            if (!confirm("Bạn có muốn tải xuống bản sao lưu toàn bộ (Database + Ảnh) dạng ZIP không?")) return;
+
+            const btn = document.getElementById('backupBtn');
+            const progressBox = document.getElementById('backupProgressBox');
+            const statusText = document.getElementById('backupStatusText');
+            const progressBar = document.getElementById('backupProgressBar');
+
+            const apiBase = document.getElementById('apiUrl').value;
+
+            try {
+                // 1. Start Backup
+                btn.disabled = true;
+                progressBox.style.display = 'block';
+                statusText.textContent = 'Bắt đầu...';
+                progressBar.style.width = '0%';
+
+                const startRes = await fetch(`${apiBase}/backup/start`, { method: 'POST' });
+                if (!startRes.ok) throw new Error("Coudln't start backup");
+
+                // 2. Poll Status
+                const pollStatus = async () => {
+                    try {
+                        const statusRes = await fetch(`${apiBase}/backup/status`);
+                        const data = await statusRes.json();
+
+                        statusText.textContent = data.current_step || 'Đang xử lý...';
+                        progressBar.style.width = `${data.percentage}%`;
+
+                        if (data.status === 'completed') {
+                            statusText.textContent = 'Đang tải file...';
+                            // 3. Trigger Download
+                            window.location.href = `${apiBase}/backup/download`;
+
+                            setTimeout(() => {
+                                btn.disabled = false;
+                                progressBox.style.display = 'none';
+                            }, 5000);
+                            return;
+                        }
+
+                        if (data.status === 'failed') {
+                            alert("Sao lưu thất bại: " + data.current_step);
+                            btn.disabled = false;
+                            progressBox.style.display = 'none';
+                            return;
+                        }
+
+                        // Keep polling
+                        setTimeout(pollStatus, 1500);
+                    } catch (err) {
+                        console.error("Polling error", err);
+                        setTimeout(pollStatus, 2000);
+                    }
+                };
+
+                pollStatus();
+
+            } catch (err) {
+                alert("Lỗi kết nối hoặc server.");
+                btn.disabled = false;
+                progressBox.style.display = 'none';
+            }
+        }
     </script>
 </body>
 

@@ -57,9 +57,55 @@ def download_file(
     if not file_record:
         raise HTTPException(status_code=404, detail="File not found")
     
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import StreamingResponse, Response
     from app.services.minio import get_object
-    
+    from app.core.redis import redis_client
+    import io
+    from PIL import Image
+
+    # --- IMAGE OPTIMIZATION & CACHING ---
+    if file_record.mime_type.startswith("image/"):
+        cache_key = f"img_cache_60_{file_id}"
+        try:
+            cached_data = redis_client.get(cache_key)
+            if cached_data:
+                return Response(
+                    content=cached_data,
+                    media_type="image/webp",
+                    headers={"Content-Disposition": f"inline; filename={file_record.id}.webp"}
+                )
+        except Exception as e:
+            print(f"[REDIS ERROR] {e}")
+
+        # Not in cache or Redis failed, generate WebP
+        try:
+            minio_response = get_object(file_record.file_path)
+            img_data = minio_response.read()
+            
+            with Image.open(io.BytesIO(img_data)) as img:
+                # Convert to RGB if necessary (WEBP quality lossy needs RGB/RGBA)
+                if img.mode not in ("RGB", "RGBA"):
+                    img = img.convert("RGBA")
+                
+                output = io.BytesIO()
+                img.save(output, format="WEBP", quality=60)
+                webp_bytes = output.getvalue()
+                
+                # Store in Redis (cache for 7 days)
+                try:
+                    redis_client.setex(cache_key, 604800, webp_bytes)
+                except:
+                    pass
+                
+                return Response(
+                    content=webp_bytes,
+                    media_type="image/webp",
+                    headers={"Content-Disposition": f"inline; filename={file_record.id}.webp"}
+                )
+        except Exception as e:
+            print(f"[IMAGE OPT ERROR] {e}")
+            # Fallback to original below
+
     try:
         response = get_object(file_record.file_path)
         return StreamingResponse(

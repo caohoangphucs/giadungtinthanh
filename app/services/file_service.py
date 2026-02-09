@@ -69,7 +69,7 @@ class FileService:
         with open(merged_path, "rb") as f:
             object_name = upload_file(f, content_type=mime_type, length=file_size)
         
-        file_url = get_public_url(object_name)
+        file_url = f"/api/files/{upload_id}"
         
         # Save to DB
         new_file = File(
