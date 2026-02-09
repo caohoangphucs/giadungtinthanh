@@ -231,7 +231,7 @@
             grid-template-columns: 50px 2fr 1fr 1fr auto;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
-            align-items: center;
+            align-items: end;
         }
 
         .variant-item button {
@@ -917,15 +917,18 @@
                     ${data.image?.id ? `<img src="${proxied}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="font-size: 0.6rem;">Ảnh</span>'}
                 </div>
                 <div>
+                    <label style="font-size: 0.65rem; color: var(--text-muted);">Tên phiên bản</label>
                     <input type="text" class="vName" value="${data.name || ''}" placeholder="Tên">
                 </div>
                 <div>
+                    <label style="font-size: 0.65rem; color: var(--text-muted);">Giá (đ)</label>
                     <input type="number" class="vPrice" value="${data.price || ''}" placeholder="Giá">
                 </div>
                 <div>
+                    <label style="font-size: 0.65rem; color: var(--text-muted);">Kho</label>
                     <input type="number" class="vStock" value="${data.stock || 100}" placeholder="Kho">
                 </div>
-                <button type="button" onclick="this.parentElement.remove()">×</button>
+                <button type="button" onclick="this.parentElement.remove()" style="margin-bottom: 0;">×</button>
             `;
             container.appendChild(item);
         }
