@@ -17,6 +17,7 @@ class ProductService:
             joinedload(Product.thumbnail),
             joinedload(Product.media).joinedload(ProductMedia.file),
             joinedload(Product.variants).joinedload(ProductVariant.attributes),
+            joinedload(Product.variants).joinedload(ProductVariant.image),
             joinedload(Product.category)
         ).offset(skip).limit(limit).all()
 
@@ -26,6 +27,7 @@ class ProductService:
             joinedload(Product.thumbnail),
             joinedload(Product.media).joinedload(ProductMedia.file),
             joinedload(Product.variants).joinedload(ProductVariant.attributes),
+            joinedload(Product.variants).joinedload(ProductVariant.image),
             joinedload(Product.category)
         ).filter(Category.slug == slug).offset(skip).limit(limit).all()
 
@@ -35,6 +37,7 @@ class ProductService:
             joinedload(Product.thumbnail),
             joinedload(Product.media).joinedload(ProductMedia.file),
             joinedload(Product.variants).joinedload(ProductVariant.attributes),
+            joinedload(Product.variants).joinedload(ProductVariant.image),
             joinedload(Product.category)
         ).filter(Product.id == product_id).first()
 
@@ -64,7 +67,8 @@ class ProductService:
             db_variant = ProductVariant(
                 product_id=db_product.id,
                 price=v_in.price,
-                stock=v_in.stock
+                stock=v_in.stock,
+                image_id=v_in.image_id
             )
             db.add(db_variant)
             db.flush() # Get variant ID
@@ -101,7 +105,8 @@ class ProductService:
                 db_variant = ProductVariant(
                     product_id=product_id,
                     price=v_in["price"],
-                    stock=v_in["stock"]
+                    stock=v_in["stock"],
+                    image_id=v_in.get("image_id")
                 )
                 db.add(db_variant)
                 db.flush()

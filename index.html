@@ -224,10 +224,10 @@
 
         .variant-item {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
+            grid-template-columns: 50px 2fr 1fr 1fr auto;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
-            align-items: end;
+            align-items: center;
         }
 
         .variant-item button {
@@ -437,23 +437,10 @@
                     <div class="form-group">
                         <label>Phiên bản & Giá (Size, Cân nặng, ...)</label>
                         <div class="variants-container" id="variantsContainer">
-                            <div class="variant-item">
-                                <div>
-                                    <label style="font-size: 0.7rem;">Tên (VD: Size L / 5kg)</label>
-                                    <input type="text" class="vName" value="Mặc định">
-                                </div>
-                                <div>
-                                    <label style="font-size: 0.7rem;">Giá (VNĐ)</label>
-                                    <input type="number" class="vPrice" value="100000">
-                                </div>
-                                <div>
-                                    <label style="font-size: 0.7rem;">Kho</label>
-                                    <input type="number" class="vStock" value="100">
-                                </div>
-                                <div></div>
-                            </div>
+                            <!-- Variants will be added here -->
                         </div>
                         <button type="button" class="btn-secondary" onclick="addVariant()">+ Thêm phiên bản</button>
+                        <input type="file" id="vImageInput" hidden accept="image/*">
                     </div>
 
                     <div class="form-group">
@@ -547,23 +534,9 @@
 
             // Reset variants to default
             const container = document.getElementById('variantsContainer');
-            container.innerHTML = `
-                <div class="variant-item">
-                    <div>
-                        <label style="font-size: 0.7rem;">Tên (VD: Size L / 5kg)</label>
-                        <input type="text" class="vName" value="Mặc định">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.7rem;">Giá (VNĐ)</label>
-                        <input type="number" class="vPrice" value="100000">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.7rem;">Kho</label>
-                        <input type="number" class="vStock" value="100">
-                    </div>
-                    <div></div>
-                </div>
-            `;
+            container.innerHTML = '';
+            addVariant({ name: 'Mặc định', price: 100000, stock: 100 });
+
             thumbnailId = null;
             galleryIds = [];
         }
@@ -682,8 +655,12 @@
                             <h4 style="margin-top: 1.5rem;">Phiên bản có sẵn:</h4>
                             <div style="background: #f8fafc; border-radius: 0.5rem; padding: 1rem;">
                                 ${p.variants.map(v => `
-                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0;">
-                                        <span>${v.attributes[0]?.unit || 'Mặc định'}</span>
+                                    <div style="display: flex; gap: 1rem; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0; align-items: center;">
+                                        <img src="${getProxyUrl(v.image?.id)}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                                        <div style="flex: 1;">
+                                            <span>${v.attributes[0]?.unit || 'Mặc định'}</span>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">Kho: ${v.stock}</div>
+                                        </div>
                                         <b style="color: var(--primary);">${v.price.toLocaleString()}đ</b>
                                     </div>
                                 `).join('')}
@@ -762,22 +739,12 @@
                 const container = document.getElementById('variantsContainer');
                 container.innerHTML = '';
                 p.variants.forEach(v => {
-                    const item = document.createElement('div');
-                    item.className = 'variant-item';
-                    const attrValue = v.attributes[0]?.unit || 'Mặc định';
-                    item.innerHTML = `
-                        <div>
-                            <input type="text" class="vName" value="${attrValue}">
-                        </div>
-                        <div>
-                            <input type="number" class="vPrice" value="${v.price}">
-                        </div>
-                        <div>
-                            <input type="number" class="vStock" value="${v.stock}">
-                        </div>
-                        <button type="button" onclick="this.parentElement.remove()">×</button>
-                    `;
-                    container.appendChild(item);
+                    addVariant({
+                        name: v.attributes[0]?.unit || 'Mặc định',
+                        price: v.price,
+                        stock: v.stock,
+                        image: v.image
+                    });
                 });
 
                 document.getElementById('submitBtn').textContent = 'Cập nhật sản phẩm';
@@ -829,24 +796,55 @@
         }
 
         // Dynamic Variants Logic
-        function addVariant() {
+        let activeVariantTarget = null;
+        function addVariant(data = {}) {
             const container = document.getElementById('variantsContainer');
             const item = document.createElement('div');
             item.className = 'variant-item';
+            item.dataset.imageId = data.image?.id || '';
+
+            const proxied = getProxyUrl(data.image?.id);
+
             item.innerHTML = `
-                <div>
-                    <input type="text" class="vName" placeholder="Tên phiên bản">
+                <div class="vImagePreview" style="height: 50px; display: flex; align-items: center; justify-content: center; background: #eee; border-radius: 0.5rem; cursor: pointer; overflow: hidden;" onclick="changeVariantImage(this)">
+                    ${data.image?.id ? `<img src="${proxied}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="font-size: 0.6rem;">Ảnh</span>'}
                 </div>
                 <div>
-                    <input type="number" class="vPrice" placeholder="Giá">
+                    <input type="text" class="vName" value="${data.name || ''}" placeholder="Tên">
                 </div>
                 <div>
-                    <input type="number" class="vStock" value="100">
+                    <input type="number" class="vPrice" value="${data.price || ''}" placeholder="Giá">
+                </div>
+                <div>
+                    <input type="number" class="vStock" value="${data.stock || 100}" placeholder="Kho">
                 </div>
                 <button type="button" onclick="this.parentElement.remove()">×</button>
             `;
             container.appendChild(item);
         }
+
+        function changeVariantImage(el) {
+            activeVariantTarget = el.parentElement;
+            document.getElementById('vImageInput').click();
+        }
+
+        document.getElementById('vImageInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file || !activeVariantTarget) return;
+
+            const preview = activeVariantTarget.querySelector('.vImagePreview');
+            preview.innerHTML = '<span style="font-size: 0.5rem;">...</span>';
+
+            try {
+                const res = await uploadFileInChunks(file);
+                activeVariantTarget.dataset.imageId = res.fileId;
+                const proxied = getProxyUrl(res.fileId);
+                preview.innerHTML = `<img src="${proxied}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } catch (err) {
+                preview.innerHTML = '<span style="font-size: 0.5rem; color:red">Lỗi</span>';
+            }
+            e.target.value = ''; // Reset
+        });
 
         // Handle Thumbnail
         document.getElementById('thumbInput').addEventListener('change', async (e) => {
@@ -901,15 +899,16 @@
 
             const variantElements = Array.from(document.querySelectorAll('.variant-item'));
             const variants = variantElements.map(el => {
-                const name = el.querySelector('.vName').value;
+                const name = el.querySelector('.vName').value || 'Mặc định';
                 return {
-                    price: parseFloat(el.querySelector('.vPrice').value),
-                    stock: parseInt(el.querySelector('.vStock').value),
-                    attributes: name !== 'Mặc định' ? [{
+                    price: parseFloat(el.querySelector('.vPrice').value) || 0,
+                    stock: parseInt(el.querySelector('.vStock').value) || 0,
+                    image_id: el.dataset.imageId || null,
+                    attributes: [{
                         name: "Phiên bản",
                         value: 0,
                         unit: name
-                    }] : []
+                    }]
                 };
             });
 

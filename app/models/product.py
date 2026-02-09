@@ -123,6 +123,12 @@ class ProductVariant(Base):
         default=0
     )
 
+    image_id: Mapped[str | None] = mapped_column(
+        ForeignKey("files.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    image: Mapped["File"] = relationship()
+
     product: Mapped["Product"] = relationship(
         back_populates="variants"
     )

@@ -38,6 +38,7 @@ class ProductVariantBase(BaseModel):
 
 class ProductVariantCreate(ProductVariantBase):
     attributes: List[VariantAttributeCreate] = []
+    image_id: Optional[str] = None
 
 class ProductVariantUpdate(BaseModel):
     price: Optional[float] = None
@@ -46,6 +47,7 @@ class ProductVariantUpdate(BaseModel):
 class ProductVariant(ProductVariantBase):
     id: int
     attributes: List[VariantAttribute] = []
+    image: Optional[FileInfo] = None
     model_config = ConfigDict(from_attributes=True)
 
 # Product
