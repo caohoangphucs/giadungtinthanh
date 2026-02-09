@@ -55,3 +55,6 @@ def delete_object(name: str) -> bool:
         return True
     except S3Error as e:
         return False
+def get_object(name: str):
+    ensure_bucket()
+    return client.get_object(MINIO_BUCKET, name)

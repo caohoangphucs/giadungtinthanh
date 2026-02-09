@@ -397,10 +397,18 @@
         <div class="tabs">
             <button class="tab active" data-view="viewList">Sản phẩm</button>
             <button class="tab" data-view="viewCreate">Thêm mới</button>
+            <button class="tab" data-view="viewCategory">Danh mục</button>
         </div>
 
         <!-- LIST VIEW -->
         <div id="viewList" class="view-section active">
+            <div class="card" style="margin-bottom: 2rem; display: flex; gap: 1rem; padding: 1rem;">
+                <input type="text" id="searchName" placeholder="Tìm theo tên sản phẩm..." oninput="loadProducts()"
+                    style="flex: 2;">
+                <select id="filterCategory" onchange="loadProducts()" style="flex: 1;">
+                    <option value="">Tất cả danh mục</option>
+                </select>
+            </div>
             <div class="product-grid" id="productGrid">
                 <!-- Data will be loaded here -->
                 <p>Đang tải dữ liệu...</p>
@@ -483,6 +491,27 @@
                     <div id="progressText">Đang tải file...</div>
                 </div>
             </div>
+            <!-- CATEGORY VIEW -->
+            <div id="viewCategory" class="view-section">
+                <div class="card">
+                    <h3>Thêm danh mục mới</h3>
+                    <form id="categoryForm">
+                        <div class="form-group">
+                            <label>Tên danh mục</label>
+                            <input type="text" id="cName" required placeholder="Ví dụ: Điện gia dụng">
+                        </div>
+                        <div class="form-group">
+                            <label>Slug (URL tiêu chuẩn)</label>
+                            <input type="text" id="cSlug" required placeholder="dien-gia-dung">
+                        </div>
+                        <div class="form-group">
+                            <label>Mô tả</label>
+                            <textarea id="cDescription" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary" id="catBtn">Thêm danh mục</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -550,6 +579,16 @@
             });
             if (viewId === 'viewList') loadProducts();
             if (viewId === 'viewCreate' && !editingProductId) resetForm();
+            if (viewId === 'viewCategory') {
+                document.getElementById('categoryForm').reset();
+            }
+        }
+
+        // Helper to get Proxy URL
+        function getProxyUrl(fileId) {
+            if (!fileId) return 'https://via.placeholder.com/300x200?text=No+Image';
+            const apiBase = document.getElementById('apiUrl').value;
+            return `${apiBase}/files/${fileId}`;
         }
 
         // Tab Switching
@@ -565,6 +604,12 @@
                 const data = await res.json();
                 const select = document.getElementById('pCategory');
                 select.innerHTML = data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+                const filterSelect = document.getElementById('filterCategory');
+                const currentFilter = filterSelect.value;
+                filterSelect.innerHTML = '<option value="">Tất cả danh mục</option>' +
+                    data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                filterSelect.value = currentFilter;
             } catch (e) {
                 console.error("Lỗi tải danh mục", e);
             }
@@ -574,20 +619,27 @@
         async function loadProducts() {
             const apiBase = document.getElementById('apiUrl').value;
             const grid = document.getElementById('productGrid');
+            const searchName = document.getElementById('searchName').value;
+            const categoryId = document.getElementById('filterCategory').value;
+
+            let url = `${apiBase}/products/?limit=100`;
+            if (searchName) url += `&q=${encodeURIComponent(searchName)}`;
+            if (categoryId) url += `&category_id=${categoryId}`;
+
             grid.innerHTML = '<p>Đang tải...</p>';
             try {
-                const res = await fetch(`${apiBase}/products/`);
+                const res = await fetch(url);
                 const products = await res.json();
-                grid.innerHTML = products.map(p => `
+                grid.innerHTML = products.length ? products.map(p => `
                     <div class="product-card" onclick="showProductDetail(${p.id})">
-                        <img src="${p.thumbnail?.file_url || 'https://via.placeholder.com/300x200?text=No+Image'}" class="product-img">
+                        <img src="${getProxyUrl(p.thumbnail?.id)}" class="product-img">
                         <div class="product-info">
                             <div class="product-category">${p.category?.name || 'Uncategorized'}</div>
                             <div class="product-name">${p.name}</div>
                             <div class="product-price">${(p.variants[0]?.price || 0).toLocaleString()}đ</div>
                         </div>
                     </div>
-                `).join('');
+                `).join('') : '<p>Không tìm thấy sản phẩm nào.</p>';
             } catch (e) {
                 grid.innerHTML = '<p>Lỗi kết nối API.</p>';
             }
@@ -608,7 +660,7 @@
 
                 body.innerHTML = `
                     <div style="display: flex; gap: 2rem; align-items: start;">
-                        <img src="${p.thumbnail?.file_url || 'https://via.placeholder.com/300x200?text=No+Image'}" 
+                        <img src="${getProxyUrl(p.thumbnail?.id)}" 
                              style="width: 250px; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                         <div style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -644,8 +696,8 @@
                         ${p.media.map(m => `
                             <div class="detail-media-item">
                                 ${m.media_type === 'video' || m.file.mime_type.startsWith('video')
-                        ? `<video src="${m.file.file_url}" controls></video>`
-                        : `<img src="${m.file.file_url}" onclick="window.open('${m.file.file_url}')" style="cursor:zoom-in">`}
+                        ? `<video src="${getProxyUrl(m.file.id)}" controls></video>`
+                        : `<img src="${getProxyUrl(m.file.id)}" onclick="window.open('${getProxyUrl(m.file.id)}')" style="cursor:zoom-in">`}
                             </div>
                         `).join('')}
                     </div>
@@ -688,7 +740,7 @@
                 // Thumbnail
                 if (p.thumbnail) {
                     thumbnailId = p.thumbnail.id;
-                    document.getElementById('thumbPreview').innerHTML = `<img src="${p.thumbnail.file_url}"><div class="badge">Thumbnail</div>`;
+                    document.getElementById('thumbPreview').innerHTML = `<img src="${getProxyUrl(p.thumbnail.id)}"><div class="badge">Thumbnail</div>`;
                 }
 
                 // Gallery
@@ -697,10 +749,11 @@
                 p.media.forEach(m => {
                     const item = document.createElement('div');
                     item.className = 'media-preview';
+                    const proxied = getProxyUrl(m.file.id);
                     if (m.media_type === 'video' || m.file.mime_type.startsWith('video')) {
-                        item.innerHTML = `<video src="${m.file.file_url}"></video><div class="badge">Video</div>`;
+                        item.innerHTML = `<video src="${proxied}"></video><div class="badge">Video</div>`;
                     } else {
-                        item.innerHTML = `<img src="${m.file.file_url}"><div class="badge">Image</div>`;
+                        item.innerHTML = `<img src="${proxied}"><div class="badge">Image</div>`;
                     }
                     gallery.prepend(item);
                 });
@@ -806,7 +859,8 @@
             try {
                 const res = await uploadFileInChunks(file);
                 thumbnailId = res.fileId;
-                preview.innerHTML = `<img src="${res.url}"><div class="badge">Thumbnail</div>`;
+                const proxied = getProxyUrl(res.fileId);
+                preview.innerHTML = `<img src="${proxied}"><div class="badge">Thumbnail</div>`;
             } catch (err) {
                 preview.innerHTML = 'Lỗi!';
             }
@@ -826,10 +880,11 @@
                 try {
                     const res = await uploadFileInChunks(file);
                     galleryIds.push(res.fileId);
+                    const proxied = getProxyUrl(res.fileId);
                     if (file.type.startsWith('video')) {
-                        item.innerHTML = `<video src="${res.url}"></video><div class="badge">Video</div>`;
+                        item.innerHTML = `<video src="${proxied}"></video><div class="badge">Video</div>`;
                     } else {
-                        item.innerHTML = `<img src="${res.url}"><div class="badge">Image</div>`;
+                        item.innerHTML = `<img src="${proxied}"><div class="badge">Image</div>`;
                     }
                 } catch (err) {
                     item.textContent = 'Lỗi!';

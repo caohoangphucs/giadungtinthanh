@@ -53,25 +53,22 @@ def download_file(
     file_id: str,
     db: Session = Depends(get_db)
 ):
-    # Spec says: Response Headers: Content-Type, Content-Disposition
-    # And binary body.
-    # But FileService uploads to MinIO and stores URL.
-    # If the file is public (MinIO), we can redirect or proxy.
-    # Spec says: "Client fetch file từ fileUrl".
-    # But also "GET /files/:fileId" -> "Binary file content".
-    # If fileUrl is "https://storage...", client can fetch directly.
-    # But if endpoint is `/files/:fileId`, it acts as proxy or redirect.
-    # I'll implement a RedirectResponse to the MinIO URL if possible, or stream it.
-    # Streaming is heavier. Redirect is better if MinIO is public.
-    
     file_record = FileService.get_file(db, file_id)
     if not file_record:
-        # Fallback to check if it's an object name (legacy support)
-        # But for now strictly follow ID.
         raise HTTPException(status_code=404, detail="File not found")
     
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url=file_record.file_url)
+    from fastapi.responses import StreamingResponse
+    from app.services.minio import get_object
+    
+    try:
+        response = get_object(file_record.file_path)
+        return StreamingResponse(
+            response,
+            media_type=file_record.mime_type,
+            headers={"Content-Disposition": f"inline; filename={file_record.file_name}"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{file_id}", response_model=dict)
 def delete_file(

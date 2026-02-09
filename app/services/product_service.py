@@ -4,8 +4,16 @@ from app.schemas.product import ProductCreate, ProductUpdate, ProductVariantCrea
 
 class ProductService:
     @staticmethod
-    def get_all(db: Session, skip: int = 0, limit: int = 100):
-        return db.query(Product).options(
+    def get_all(db: Session, skip: int = 0, limit: int = 100, name: str = None, category_id: int = None):
+        query = db.query(Product)
+        
+        if name:
+            query = query.filter(Product.name.ilike(f"%{name}%"))
+        
+        if category_id:
+            query = query.filter(Product.category_id == category_id)
+
+        return query.options(
             joinedload(Product.thumbnail),
             joinedload(Product.media).joinedload(ProductMedia.file),
             joinedload(Product.variants).joinedload(ProductVariant.attributes),

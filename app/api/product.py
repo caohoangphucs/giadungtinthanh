@@ -11,9 +11,11 @@ router = APIRouter(prefix="/products", tags=["Products"])
 def list_products(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
+    q: str = Query(None),
+    category_id: int = Query(None),
     db: Session = Depends(get_db)
 ):
-    return ProductService.get_all(db, skip=skip, limit=limit)
+    return ProductService.get_all(db, skip=skip, limit=limit, name=q, category_id=category_id)
 
 @router.get("/category/{slug}", response_model=List[Product])
 def get_products_by_category_slug(
