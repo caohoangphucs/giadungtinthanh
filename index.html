@@ -478,26 +478,27 @@
                     <div id="progressText">Đang tải file...</div>
                 </div>
             </div>
-            <!-- CATEGORY VIEW -->
-            <div id="viewCategory" class="view-section">
-                <div class="card">
-                    <h3>Thêm danh mục mới</h3>
-                    <form id="categoryForm">
-                        <div class="form-group">
-                            <label>Tên danh mục</label>
-                            <input type="text" id="cName" required placeholder="Ví dụ: Điện gia dụng">
-                        </div>
-                        <div class="form-group">
-                            <label>Slug (URL tiêu chuẩn)</label>
-                            <input type="text" id="cSlug" required placeholder="dien-gia-dung">
-                        </div>
-                        <div class="form-group">
-                            <label>Mô tả</label>
-                            <textarea id="cDescription" rows="3"></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary" id="catBtn">Thêm danh mục</button>
-                    </form>
-                </div>
+        </div>
+
+        <!-- CATEGORY VIEW -->
+        <div id="viewCategory" class="view-section">
+            <div class="card">
+                <h3>Thêm danh mục mới</h3>
+                <form id="categoryForm">
+                    <div class="form-group">
+                        <label>Tên danh mục</label>
+                        <input type="text" id="cName" required placeholder="Ví dụ: Điện gia dụng">
+                    </div>
+                    <div class="form-group">
+                        <label>Slug (URL tiêu chuẩn)</label>
+                        <input type="text" id="cSlug" required placeholder="dien-gia-dung">
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea id="cDescription" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" id="catBtn">Thêm danh mục</button>
+                </form>
             </div>
         </div>
     </div>
@@ -934,7 +935,6 @@
                 if (res.ok) {
                     alert(editingProductId ? "Cập nhật sản phẩm thành công!" : "Tạo sản phẩm thành công!");
                     resetForm();
-                    switchTab('viewList');
                 } else {
                     alert("Lỗi khi lưu sản phẩm.");
                 }
@@ -943,6 +943,42 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = editingProductId ? 'Cập nhật sản phẩm' : 'Lưu sản phẩm';
+            }
+        });
+
+        // Create Category
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('catBtn');
+            btn.disabled = true;
+            btn.textContent = 'Đang lưu...';
+
+            const payload = {
+                name: document.getElementById('cName').value,
+                slug: document.getElementById('cSlug').value,
+                description: document.getElementById('cDescription').value
+            };
+
+            const apiBase = document.getElementById('apiUrl').value;
+            try {
+                const res = await fetch(`${apiBase}/categories/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert("Tạo danh mục thành công!");
+                    loadCategories();
+                    document.getElementById('categoryForm').reset();
+                } else {
+                    const error = await res.json();
+                    alert("Lỗi: " + (error.detail || "Không rõ"));
+                }
+            } catch (err) {
+                alert("Lỗi kết nối.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Thêm danh mục';
             }
         });
 
