@@ -607,6 +607,14 @@
                     <button type="submit" class="btn-primary" id="catBtn">Thêm danh mục</button>
                 </form>
             </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <h3>Danh sách danh mục</h3>
+                <div id="categoryListContainer"
+                    style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                    <!-- Categories will be listed here -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -691,8 +699,40 @@
                 filterSelect.innerHTML = '<option value="">Tất cả danh mục</option>' +
                     data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
                 filterSelect.value = currentFilter;
+
+                // Update Category List in viewCategory
+                const listContainer = document.getElementById('categoryListContainer');
+                if (listContainer) {
+                    listContainer.innerHTML = data.map(c => `
+                        <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 700;">${c.name}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${c.slug}</div>
+                            </div>
+                            <button onclick="deleteCategory(${c.id})" class="btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Xóa</button>
+                        </div>
+                    `).join('');
+                }
             } catch (e) {
                 console.error("Lỗi tải danh mục", e);
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm("Bạn có chắc muốn xóa danh mục này? Tất cả sản phẩm thuộc danh mục này sẽ bị mồ côi.")) return;
+
+            const apiBase = document.getElementById('apiUrl').value;
+            try {
+                const res = await fetch(`${apiBase}/categories/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert("Xóa danh mục thành công!");
+                    loadCategories();
+                } else {
+                    const error = await res.json();
+                    alert("Lỗi: " + (error.detail || "Không rõ"));
+                }
+            } catch (e) {
+                alert("Lỗi kết nối.");
             }
         }
 
