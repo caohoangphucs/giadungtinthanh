@@ -651,7 +651,7 @@
             // Reset variants to default
             const container = document.getElementById('variantsContainer');
             container.innerHTML = '';
-            addVariant({ name: 'Mặc định', price: 100000, stock: 100 });
+            addVariant();
 
             thumbnailId = null;
             galleryIds = [];
@@ -959,15 +959,15 @@
                 </div>
                 <div>
                     <label style="font-size: 0.65rem; color: var(--text-muted);">Tên phiên bản</label>
-                    <input type="text" class="vName" value="${data.name || ''}" placeholder="Tên">
+                    <input type="text" class="vName" value="${data.name || ''}" placeholder="Ví dụ: Màu đỏ, Size L...">
                 </div>
                 <div>
                     <label style="font-size: 0.65rem; color: var(--text-muted);">Giá (đ)</label>
-                    <input type="number" class="vPrice" value="${data.price || ''}" placeholder="Giá">
+                    <input type="number" class="vPrice" value="${data.price || ''}" placeholder="Ví dụ: 100000">
                 </div>
                 <div>
                     <label style="font-size: 0.65rem; color: var(--text-muted);">Kho</label>
-                    <input type="number" class="vStock" value="${data.stock || 100}" placeholder="Kho">
+                    <input type="number" class="vStock" value="${data.stock !== undefined ? data.stock : ''}" placeholder="Ví dụ: 100">
                 </div>
                 <button type="button" onclick="this.parentElement.remove()" style="margin-bottom: 0;">×</button>
             `;
