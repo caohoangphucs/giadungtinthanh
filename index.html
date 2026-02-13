@@ -722,10 +722,12 @@
         }
 
         // Helper to get Proxy URL
-        function getProxyUrl(fileId) {
+        function getProxyUrl(fileId, preview = false) {
             if (!fileId) return 'https://via.placeholder.com/300x200?text=No+Image';
             const apiBase = document.getElementById('apiUrl').value;
-            return `${apiBase}/files/${fileId}`;
+            let url = `${apiBase}/files/${fileId}`;
+            if (preview) url += '?preview=true';
+            return url;
         }
 
         // Lightbox Functions
@@ -813,7 +815,7 @@
                 const products = await res.json();
                 grid.innerHTML = products.length ? products.map(p => `
                     <div class="product-card">
-                        <img src="${getProxyUrl(p.thumbnail?.id)}" class="product-img" onclick="showProductDetail(${p.id})">
+                        <img src="${getProxyUrl(p.thumbnail?.id, true)}" class="product-img" onclick="showProductDetail(${p.id})">
                         <div class="product-info" onclick="showProductDetail(${p.id})">
                             <div class="product-category">${p.category?.name || 'Uncategorized'}</div>
                             <div class="product-name">${p.name}</div>
@@ -866,7 +868,7 @@
                                 ${p.variants.map(v => `
                                     <div style="display: flex; gap: 1rem; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0; align-items: center;">
                                         <div style="width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: #eee; cursor: zoom-in;" onclick="if(this.querySelector('img')) openLightbox(this.querySelector('img').src)">
-                                            ${v.image ? `<img src="${getProxyUrl(v.image.id)}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#999;">Ko ảnh</div>'}
+                                            ${v.image ? `<img src="${getProxyUrl(v.image.id, true)}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#999;">Ko ảnh</div>'}
                                         </div>
                                         <div style="flex: 1;">
                                             <span>${v.attributes[0]?.unit || 'Mặc định'}</span>
@@ -929,7 +931,7 @@
                 if (p.thumbnail) {
                     thumbnailId = p.thumbnail.id;
                     document.getElementById('thumbPreview').innerHTML = `
-                        <img src="${getProxyUrl(p.thumbnail.id)}">
+                        <img src="${getProxyUrl(p.thumbnail.id, true)}">
                         <div class="badge">Thumbnail</div>
                         <button type="button" class="remove-btn" onclick="clearThumbnail(event)">×</button>
                     `;
@@ -942,7 +944,7 @@
                     const item = document.createElement('div');
                     item.className = 'media-preview';
                     item.dataset.fileId = m.file.id;
-                    const proxied = getProxyUrl(m.file.id);
+                    const proxied = getProxyUrl(m.file.id, true);
                     if (m.media_type === 'video' || m.file.mime_type.startsWith('video')) {
                         item.innerHTML = `<video src="${proxied}"></video><div class="badge">Video</div><button type="button" class="remove-btn" onclick="removeMedia(this)">×</button>`;
                     } else {
@@ -1019,7 +1021,7 @@
             item.className = 'variant-item';
             item.dataset.imageId = data.image?.id || '';
 
-            const proxied = getProxyUrl(data.image?.id);
+            const proxied = getProxyUrl(data.image?.id, true);
 
             item.innerHTML = `
                 <div class="vImagePreview" style="position: relative; height: 50px; display: flex; align-items: center; justify-content: center; background: #eee; border-radius: 0.5rem; cursor: pointer; overflow: hidden;">

@@ -9,6 +9,7 @@ class File(Base):
     id = Column(String(50), primary_key=True, default=generate_uuid)
     file_name = Column(String(255), nullable=False)
     file_path = Column(String(500), nullable=False)
+    preview_path = Column(String(500), nullable=True) # WebP preview path
     file_url = Column(String(500), nullable=False)
     file_size = Column(BigInteger, nullable=False)
     mime_type = Column(String(100), nullable=False)

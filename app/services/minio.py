@@ -10,24 +10,33 @@ def ensure_bucket():
         client.make_bucket(MINIO_BUCKET)
 
 
-def upload_file(file, content_type: str, length: int = -1) -> str:
+def upload_file(file, content_type: str, length: int = -1, custom_name: str = None) -> str:
     ensure_bucket()
 
-    if hasattr(file, "filename"):
-        filename = file.filename
+    if custom_name:
+        object_name = custom_name
+    else:
+        if hasattr(file, "filename"):
+            filename = file.filename
+            data = file.file
+        else:
+            filename = os.path.basename(getattr(file, "name", "unknown"))
+            data = file
+        object_name = f"{uuid.uuid4()}_{filename}"
+
+    if not hasattr(file, "filename") and not custom_name:
+        data = file # fallback
+    elif hasattr(file, "filename"):
         data = file.file
     else:
-        filename = os.path.basename(getattr(file, "name", "unknown"))
         data = file
-
-    object_name = f"{uuid.uuid4()}_{filename}"
 
     client.put_object(
         bucket_name=MINIO_BUCKET,
         object_name=object_name,
         data=data,
         length=length,
-        part_size=10 * 1024 * 1024, # Use a standard 10MB part size, SDK will handle smaller files correctly
+        part_size=10 * 1024 * 1024,
         content_type=content_type,
     )
 

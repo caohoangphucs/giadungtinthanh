@@ -51,6 +51,7 @@ def complete_upload(
 @router.get("/{file_id}")
 def download_file(
     file_id: str,
+    preview: bool = False,
     db: Session = Depends(get_db)
 ):
     file_record = FileService.get_file(db, file_id)
@@ -61,10 +62,18 @@ def download_file(
     from app.services.minio import get_object
 
     try:
-        response = get_object(file_record.file_path)
+        path_to_get = file_record.file_path
+        media_type = file_record.mime_type
+        
+        # If preview requested and exists, use preview path
+        if preview and file_record.preview_path:
+            path_to_get = file_record.preview_path
+            media_type = "image/webp"
+
+        response = get_object(path_to_get)
         return StreamingResponse(
             response,
-            media_type=file_record.mime_type,
+            media_type=media_type,
             headers={"Content-Disposition": f"inline; filename={file_record.file_name}"}
         )
     except Exception as e:

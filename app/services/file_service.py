@@ -69,6 +69,29 @@ class FileService:
         with open(merged_path, "rb") as f:
             object_name = upload_file(f, content_type=mime_type, length=file_size)
         
+        preview_path = None
+        # Generate WebP Preview for images
+        if mime_type.startswith("image/"):
+            try:
+                from PIL import Image
+                import io
+                with Image.open(merged_path) as img:
+                    # Convert to RGB if necessary
+                    if img.mode not in ("RGB", "RGBA"):
+                        img = img.convert("RGBA")
+                    
+                    output = io.BytesIO()
+                    img.save(output, format="WEBP", quality=60)
+                    webp_bytes = output.getvalue()
+                    
+                    # Upload preview to MinIO
+                    preview_object_name = f"previews/{upload_id}.webp"
+                    preview_data = io.BytesIO(webp_bytes)
+                    upload_file(preview_data, content_type="image/webp", length=len(webp_bytes), custom_name=preview_object_name)
+                    preview_path = preview_object_name
+            except Exception as e:
+                print(f"[PREVIEW GEN ERROR] {e}")
+
         file_url = f"/api/files/{upload_id}"
         
         # Save to DB
@@ -76,6 +99,7 @@ class FileService:
             id=upload_id, 
             file_name=filename,
             file_path=object_name,
+            preview_path=preview_path,
             file_url=file_url,
             file_size=file_size,
             mime_type=mime_type,
@@ -105,6 +129,8 @@ class FileService:
         
         # Delete from MinIO
         delete_object(file_record.file_path)
+        if file_record.preview_path:
+            delete_object(file_record.preview_path)
         
         # Delete from DB
         db.delete(file_record)
