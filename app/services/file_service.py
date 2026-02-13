@@ -73,9 +73,12 @@ class FileService:
         # Generate WebP Preview for images
         if mime_type.startswith("image/"):
             try:
-                from PIL import Image
+                from PIL import Image, ImageOps
                 import io
                 with Image.open(merged_path) as img:
+                    # Fix orientation based on EXIF data
+                    img = ImageOps.exif_transpose(img)
+                    
                     # Convert to RGB if necessary
                     if img.mode not in ("RGB", "RGBA"):
                         img = img.convert("RGBA")
